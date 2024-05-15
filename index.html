@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таймер до Дня Рождения</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            background: gray;
+            text-shadow: 0px 1px 1px solid;
+            color: orange;
+        }
+        #birthday-form {
+            margin: 20px auto;
+            width: 300px;
+            color: black;
+        }
+        #timer {
+            font-size: 25px;
+            margin-top: 20px;
+            color: darkturquoise;
+        }
+    </style>
+</head>
+<body>
+    <h1>Таймер до Дня Рождения</h1>
+
+    <form id="birthday-form">
+        <label for="day">День:</label>
+        <input type="number" id="day" name="day" min="1" max="31" required>
+
+        <label for="month">Месяц:</label>
+        <input type="number" id="month" name="month" min="1" max="12" required>
+
+        <label for="year">Год:</label>
+        <input type="number" id="year" name="year" min="1900" max="2024" required>
+
+        <button type="submit">Принять</button>
+    </form>
+
+    <div id="timer"></div>
+
+    <script>
+        const birthdayForm = document.getElementById('birthday-form');
+        const timerDiv = document.getElementById('timer');
+
+        // Загружаем дату рождения из LocalStorage
+        let birthday = loadBirthday();
+        if (birthday) {
+            updateTimer();
+        }
+
+        birthdayForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const day = parseInt(document.getElementById('day').value);
+            const month = parseInt(document.getElementById('month').value);
+            const year = parseInt(document.getElementById('year').value);
+
+            // Проверка валидности даты
+            if (isValidDate(day, month, year)) {
+                birthday = new Date(year, month - 1, day); // Месяцы в Date начинаются с 0
+                saveBirthday(birthday);
+                updateTimer();
+            } else {
+                alert("Введенная дата неверна. Пожалуйста, проверьте данные.");
+            }
+        });
+
+        // Функция для проверки валидности даты
+        function isValidDate(day, month, year) {
+            const date = new Date(year, month - 1, day);
+            return date.getDate() === day && date.getMonth() + 1 === month && date.getFullYear() === year;
+        }
+
+        // Функция для сохранения даты рождения в LocalStorage
+        function saveBirthday(birthday) {
+            localStorage.setItem('birthday', birthday.getTime());
+        }
+
+        // Функция для загрузки даты рождения из LocalStorage
+        function loadBirthday() {
+            const birthdayTimestamp = localStorage.getItem('birthday');
+            if (birthdayTimestamp) {
+                return new Date(parseInt(birthdayTimestamp));
+            } else {
+                return null;
+            }
+        }
+
+        // Функция для обновления таймера
+        function updateTimer() {
+            const now = new Date();
+            const nextBirthday = getNextBirthday(birthday);
+            const timeDiff = nextBirthday.getTime() - now.getTime();
+
+            if (timeDiff >= 0) {
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+                const milliseconds = timeDiff % 1000;
+
+                timerDiv.innerHTML = `
+                    До вашего следующего дня рождения осталось:
+                    <br>
+                    ${days} дней, ${hours} часов, ${minutes} минут, ${seconds} секунд, ${milliseconds} миллисекунд
+                `;
+            } else {
+                timerDiv.innerHTML = "С Днём Рождения!";
+            }
+        }
+
+        // Функция для получения даты следующего дня рождения
+        function getNextBirthday(birthday) {
+            const currentYear = new Date().getFullYear();
+            const nextBirthday = new Date(currentYear, birthday.getMonth(), birthday.getDate());
+
+            if (nextBirthday < new Date()) {
+                nextBirthday.setFullYear(currentYear + 1);
+            }
+
+            return nextBirthday;
+        }
+
+        // Обновляем таймер каждую секунду
+        setInterval(updateTimer, 1);
+    </script>
+</body>
+</html>
